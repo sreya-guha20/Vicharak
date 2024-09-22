@@ -1,4 +1,4 @@
-section .data
+
     prompt1 db 'Enter first number: ', 0
     prompt2 db 'Enter second number: ', 0
     prompt3 db 'Choose operation (+, -, *, /): ', 0
