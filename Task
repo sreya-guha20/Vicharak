@@ -1,0 +1,122 @@
+section .data
+    prompt1 db 'Enter first number: ', 0
+    prompt2 db 'Enter second number: ', 0
+    prompt3 db 'Choose operation (+, -, *, /): ', 0
+    result_msg db 'Result: ', 0
+    newline db 0xA, 0xD, 0
+    div_by_zero_msg db 'Error: Division by zero.', 0
+
+section .bss
+    num1 resb 4
+    num2 resb 4
+    result resb 4
+    operator resb 1
+
+section .text
+    global _start
+
+_start:
+    ; Get first number
+    mov edx, len prompt1
+    mov ecx, prompt1
+    call print_string
+    call read_int
+    mov [num1], eax  ; Store the first number
+
+    ; Get second number
+    mov edx, len prompt2
+    mov ecx, prompt2
+    call print_string
+    call read_int
+    mov [num2], eax  ; Store the second number
+
+    ; Get operator
+    mov edx, len prompt3
+    mov ecx, prompt3
+    call print_string
+    call read_char
+    mov [operator], al  ; Store the operator
+
+    ; Perform the operation
+    mov eax, [num1]
+    mov ebx, [num2]
+
+    cmp byte [operator], '+'
+    je add_operation
+    cmp byte [operator], '-'
+    je sub_operation
+    cmp byte [operator], '*'
+    je mul_operation
+    cmp byte [operator], '/'
+    je div_operation
+
+    jmp _exit
+
+add_operation:
+    add eax, ebx
+    jmp print_result
+
+sub_operation:
+    sub eax, ebx
+    jmp print_result
+
+mul_operation:
+    imul ebx
+    jmp print_result
+
+div_operation:
+    cmp ebx, 0
+    je div_by_zero
+    xor edx, edx  ; Clear remainder
+    div ebx
+    jmp print_result
+
+div_by_zero:
+    mov edx, len div_by_zero_msg
+    mov ecx, div_by_zero_msg
+    call print_string
+    jmp _exit
+
+print_result:
+    mov [result], eax
+    mov edx, len result_msg
+    mov ecx, result_msg
+    call print_string
+    call print_int
+    jmp _exit
+
+_exit:
+    mov eax, 60
+    xor edi, edi
+    syscall
+
+; Helper functions
+print_string:
+    mov eax, 4
+    mov ebx, 1
+    int 0x80
+    ret
+
+read_int:
+    mov eax, 3
+    mov ebx, 0
+    int 0x80
+    ; Convert ASCII to integer (if input was in ASCII)
+    sub eax, '0'
+    ret
+
+read_char:
+    mov eax, 3
+    mov ebx, 0
+    int 0x80
+    ret
+
+print_int:
+    add eax, '0'  ; Convert to ASCII
+    mov [result], eax
+    mov edx, 1
+    mov ecx, result
+    call print_string
+    ret
+
+len equ $ - prompt1
